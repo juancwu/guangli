@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"sync"
 
+	"github.com/juancwu/guangli/internal/errors"
 	"github.com/spf13/viper"
 )
 
@@ -96,9 +97,8 @@ var lock sync.Mutex
 // If not loaded, it will lazy load the configuration.
 func GetConfig() (*Config, error) {
 	if globalCfg == nil || localV == nil {
-		// TODO: wrap error
 		if err := load(); err != nil {
-			return nil, err
+			return nil, errors.E(errors.Op("config.GetConfig"), errors.KindUnexpected, err)
 		}
 	}
 
@@ -107,19 +107,18 @@ func GetConfig() (*Config, error) {
 
 // ReloadConfig reloads the configuration on demand.
 func ReloadConfig() error {
+	op := errors.Op("config.ReloadConfig")
 	if globalCfg == nil || localV == nil {
-		// TODO: wrap error
 		if err := load(); err != nil {
-			return err
+			return errors.E(op, errors.KindUnexpected, err)
 		}
 	}
 
 	lock.Lock()
 	defer lock.Unlock()
 
-	// TODO: wrap error
 	if err := localV.ReadInConfig(); err != nil {
-		return err
+		return errors.E(op, errors.KindUnexpected, err)
 	}
 
 	return nil
@@ -130,6 +129,8 @@ func load() (err error) {
 	lock.Lock()
 	defer lock.Unlock()
 
+	op := errors.Op("config.load")
+
 	once.Do(func() {
 		localV = viper.New()
 
@@ -137,19 +138,16 @@ func load() (err error) {
 		localV.SetConfigType("yaml")
 		localV.AddConfigPath(".")
 
-		// TODO: wrap error
 		if err = localV.ReadInConfig(); err != nil {
 			return
 		}
 
-		// TODO: wrap error
 		if err = substituteEnvVars(localV); err != nil {
 			return
 		}
 
 		// Unmarshal needs an addressible pointer so we must declare a variable first
 		var cfg Config
-		// TODO: wrap error
 		if err = localV.Unmarshal(&cfg); err != nil {
 			return
 		}
@@ -157,15 +155,16 @@ func load() (err error) {
 
 	})
 
-	// TODO: wrap error
 	if err != nil {
-		return err
+		return errors.E(op, errors.KindUnexpected, err)
 	}
 
 	return nil
 }
 
 func substituteEnvVars(v *viper.Viper) error {
+	op := errors.Op("config.substituteEnvVars")
+
 	// regex to match ${VARIABLE_NAME}
 	envVarRegex := regexp.MustCompile(`\$\{([^}]+)\}`)
 
@@ -225,20 +224,20 @@ func substituteEnvVars(v *viper.Viper) error {
 		switch v := value.(type) {
 		case string:
 			if err := checkUnresolved(envVarRegex, v, key); err != nil {
-				return err
+				return errors.E(op, errors.KindUnexpected, err)
 			}
 		case []any:
 			for _, item := range v {
 				if itemStr, ok := item.(string); ok {
 					if err := checkUnresolved(envVarRegex, itemStr, key); err != nil {
-						return err
+						return errors.E(op, errors.KindUnexpected, err)
 					}
 				}
 			}
 		case []string:
 			for _, itemStr := range v {
 				if err := checkUnresolved(envVarRegex, itemStr, key); err != nil {
-					return err
+					return errors.E(op, errors.KindUnexpected, err)
 				}
 			}
 		}
@@ -274,7 +273,8 @@ func checkUnresolved(r *regexp.Regexp, value string, key string) error {
 		matches := r.FindAllStringSubmatch(value, -1)
 		for _, match := range matches {
 			if len(match) > 1 {
-				return fmt.Errorf("environment variable %s not found for key %s", match[1], key)
+				err := fmt.Errorf("environment variable %s not found for key %s", match[1], key)
+				return errors.E(errors.Op("config.checkUnresolved"), errors.KindUnexpected, err)
 			}
 		}
 	}
