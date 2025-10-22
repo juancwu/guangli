@@ -1,0 +1,65 @@
+# This is a template file.
+# All sensitive values are loaded from environment variables
+# using the ${VAR_NAME} syntax.
+# "development" or "production"
+environment: "development"
+app:
+  # The application name. This is used in alert emails.
+  name: "My App"
+  # Timezone for all timestamps, e.g., "UTC" or "America/New_York"
+  timezone: "UTC"
+network:
+  # The host to bind to (e.g., "127.0.0.1" or "0.0.0.0")
+  host: "127.0.0.1"
+  # The port to bind to
+  port: 8080
+  # The public-facing domain (for cookies, links, etc.)
+  # In production: "https://api.myapp.com"
+  domain: "http://localhost:8080"
+database:
+  # Driver can be: pgsql, mysql, or sqlite
+  driver: "sqlite"
+  # DSN for sqlite is just a file path
+  dsn: "./app.db"
+  # --- PRODUCTION EXAMPLE (PostgreSQL) ---
+  # driver: "pgsql"
+  # DSN for PostgreSQL. All secrets are loaded from env vars.
+  # dsn: "postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable"
+auth:
+  access_token:
+    # SECRET: Loaded from env var JWT_ACCESS_SECRET
+    # This is the secret key for signing short-lived access tokens.
+    secret: "${JWT_ACCESS_SECRET}"
+    iss: "my-app-api"
+    aud: "my-app-clients"
+    # Lifetime of the access token (e.g., "15m", "1h")
+    expires_in: "15m"
+  refresh_cookie:
+    # SECRET: Loaded from env var COOKIE_SECRET
+    # This is for signing/encrypting the cookie value itself.
+    secret: "${COOKIE_SECRET}"
+    # Name of the cookie stored in the user's browser
+    name: "app_refresh_token"
+    # Domain for the cookie.
+    # In dev: "localhost"
+    # In prod: "myapp.com" (so it's sent to api.myapp.com and app.myapp.com)
+    domain: "localhost"
+    # Set to true in production (requires HTTPS)
+    secure: false
+    # Path for the cookie (e.g., where the refresh endpoint lives)
+    path: "/api/v1/auth/refresh"
+    # true: Cookie cannot be accessed by client-side JS (XSS protection)
+    http_only: true
+    # "lax", "strict", or "none" (must use secure: true for "none")
+    same_site: "lax"
+    # Lifetime of the refresh token (e.g., "7d", "30d")
+    max_age: "7d"
+# SMTPServer is used for admin alert emails only.
+smtp_server:
+  host: "smtp.mailgun.org" # Example
+  port: 587
+  # SECRETS: Loaded from env vars
+  username: "${SMTP_USER}"
+  password: "${SMTP_PASSWORD}"
+  # The "From" email address for alerts
+  email: "no-reply@myapp.com"
