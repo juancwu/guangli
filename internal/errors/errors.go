@@ -1,8 +1,13 @@
 package errors
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
-type Severity uint8
+type Op string
+
+type Severity int
 
 func (severity Severity) String() string {
 	switch severity {
@@ -16,7 +21,7 @@ func (severity Severity) String() string {
 		return "Error"
 	}
 
-	return "Unknown"
+	return fmt.Sprintf("Severity(%d)", severity)
 }
 
 const (
@@ -30,7 +35,7 @@ const (
 	SeverityError
 )
 
-type Kind uint8
+type Kind int
 
 func (kind Kind) String() string {
 	switch kind {
@@ -43,23 +48,23 @@ func (kind Kind) String() string {
 	case KindUnexpected:
 		return "Unexpected"
 	}
-	return "Unknown"
+	return fmt.Sprintf("Kind(%d)", kind)
 }
 
 const (
 	// For unepxected events
-	KindUnexpected = iota
+	KindUnexpected = http.StatusInternalServerError
 	// For not found events, such as resource not found
-	KindNotFound
+	KindNotFound = http.StatusNotFound
 	// For any kind of invalid input, e.g., func arguments or request body
-	KindInvalidInput
+	KindInvalidInput = http.StatusBadRequest
 	// For any action that is not allowed by user
-	KindUnauthorized
+	KindUnauthorized = http.StatusUnauthorized
 )
 
 type Error struct {
 	// The operation, e.g., "db.GetUser"
-	Op string
+	Op Op
 	// The category of the error
 	Kind Kind
 	// The log level
