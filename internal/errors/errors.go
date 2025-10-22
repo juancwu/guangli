@@ -84,3 +84,50 @@ func (e *Error) Error() string {
 func (e *Error) Unwrap() error {
 	return e.Err
 }
+
+// E is a helper function to create a new Error
+func E(args ...any) *Error {
+	e := &Error{}
+
+	for _, arg := range args {
+		switch value := arg.(type) {
+		case Op:
+			e.Op = value
+		case Kind:
+			e.Kind = value
+		case Severity:
+			e.Severity = value
+		case map[string]any:
+			e.Metadata = value
+		case error:
+			e.Err = value
+		default:
+			panic("bad call to E")
+		}
+	}
+
+	return e
+}
+
+// StackTrace creates a "stack trace" of operations.
+func StackTrace(e *Error) []Op {
+	ops := []Op{e.Op}
+
+	subErr, ok := e.Err.(*Error)
+	if !ok {
+		return ops
+	}
+
+	ops = append(ops, StackTrace(subErr)...)
+
+	return ops
+}
+
+// GetKind extracts a kind from an error
+func GetKind(e error) Kind {
+	err, ok := e.(*Error)
+	if !ok {
+		return KindUnexpected
+	}
+	return err.Kind
+}
