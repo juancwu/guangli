@@ -53,13 +53,13 @@ func (kind Kind) String() string {
 
 const (
 	// For unepxected events
-	KindUnexpected = http.StatusInternalServerError
+	KindUnexpected Kind = http.StatusInternalServerError
 	// For not found events, such as resource not found
-	KindNotFound = http.StatusNotFound
+	KindNotFound Kind = http.StatusNotFound
 	// For any kind of invalid input, e.g., func arguments or request body
-	KindInvalidInput = http.StatusBadRequest
+	KindInvalidInput Kind = http.StatusBadRequest
 	// For any action that is not allowed by user
-	KindUnauthorized = http.StatusUnauthorized
+	KindUnauthorized Kind = http.StatusUnauthorized
 )
 
 type Error struct {
