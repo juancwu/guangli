@@ -25,14 +25,14 @@ func (severity Severity) String() string {
 }
 
 const (
-	SeverityDebug Severity = iota
+	SeverityDebug Severity = 1
 	// SeverityInfo is for anything that provides extra information
 	// but doesn't need extra attention from developers.
-	SeverityInfo
+	SeverityInfo Severity = 2
 	// SeverityWarning is for things that went wrong but do not cause a system failure.
-	SeverityWarning
+	SeverityWarning Severity = 3
 	// SeverityError is for unexpected system failures
-	SeverityError
+	SeverityError Severity = 4
 )
 
 type Kind int
